@@ -1,0 +1,487 @@
+---
+title: "LIMPIEZA DE DATOS"
+author: "MIGUEL HERNÀNDEZ"
+date: "2026-11-14"
+output: html_document
+---
+
+# LIMPIEZA DE DATOS
+```{r}
+list.files("../DATOS") # visualizar que archivos hay en esa carpeta
+```
+En esta linea es para cargamos la matriz de datos
+```{r}
+data <- read.csv("C:\\Users\\lumih\\OneDrive\\Documents\\IA\\Ciencia de datos\\DATOS\\dataset_clase_1.csv")
+```
+
+Visualizamos los datos
+```{r, results='hide'}
+data
+```
+## EXPLORACIÓN DE LOS DATOS 
+```{r}
+head(data)
+```
+```{r}
+tail(data)
+```
+```{r}
+dim(data)
+```
+```{r}
+colnames(data)
+```
+```{r}
+str(data)
+```
+```{r}
+freq_profesion <- table(data$Profesion)
+
+freq_profesion
+```
+
+
+```{r}
+tabla_profesion <- data.frame(sort(table(data$Profesion),
+                                      decreasing = TRUE))
+
+colnames(tabla_profesion) <- c("Profesion", "Frecuencia")
+
+tabla_profesion
+```
+
+```{r}
+freq_Genero <- table(data$Genero)
+
+freq_Genero
+```
+
+```{r}
+tabla_Genero <- data.frame(sort(table(data$Genero),
+                                      decreasing = TRUE))
+
+colnames(tabla_Genero) <- c("Genero", "Frecuencia")
+
+tabla_Genero
+```
+```{r}
+freq_Ciudad <- table(data$Ciudad)
+
+freq_Ciudad
+```
+```{r}
+tabla_Ciudad <- data.frame(sort(table(data$Ciudad),
+                                      decreasing = TRUE))
+
+colnames(tabla_Ciudad) <- c("Ciudad", "Frecuencia")
+
+tabla_Ciudad
+```
+```{r}
+freq_Nivel_Educativo <- table(data$Nivel_Educativo)
+
+freq_Nivel_Educativo
+```
+```{r}
+tabla_Nivel_Educativo <- data.frame(sort(table(data$Nivel_Educativo),
+                                      decreasing = TRUE))
+
+colnames(tabla_Nivel_Educativo) <- c("Nivel_Educativo", "Frecuencia")
+
+tabla_Nivel_Educativo
+```
+
+## ANÁLISIS DE VARIABLES CUALITATIVAS
+
+```{r}
+summary(data$Ingreso)
+```
+
+** tenemos un problema con el ingreso negativo el cual no es adecuado**
+```{r}
+boxplot(
+  data$Ingreso,
+  horizontal = TRUE,
+  col = "skyblue",
+  border = "darkblue",
+  main = "Cajas y Bigotes de Ingresos",
+  xlab = "Ingreso")
+```
+```{r}
+hist(
+  data$Ingreso,
+  horizontal = TRUE,
+  col = "skyblue",
+  border = "darkblue",
+  main = "Histograma de Ingresos",
+  xlab = "Ingreso")
+```
+```{r}
+boxplot(
+  data$Edad,
+  horizontal = TRUE,
+  col = "skyblue",
+  border = "darkblue",
+  main = "Cajas y Bigotes de Edad",
+  xlab = "Ingreso")
+```
+```{r}
+hist(
+  data$Edad,
+  horizontal = TRUE,
+  col = "skyblue",
+  border = "darkblue",
+  main = "Histograma de Edad",
+  xlab = "Ingreso")
+```
+# 5. Limpieza de datos
+
+## Valores faltantes
+
+Valores perdidos en todo el data frame
+
+```{r}
+# Número total de datos perdidos en el dataframe
+total_na <- sum(is.na(data))
+
+print(paste("Total de datos perdidos:", total_na))
+```
+
+
+Valores faltantes por columnas
+
+```{r}
+library(dplyr)
+
+
+# Número de datos perdidos por columna
+na_por_columna <- colSums(is.na(data))
+
+# Crear un dataframe con los resultados
+
+tabla_na <- data.frame(
+  Columna = names(na_por_columna), # obtiene los nombres de las columnas
+  Datos_Perdidos = na_por_columna # contiene la cantidad de NA por variable
+)
+
+# tabla_na
+# Agregar una fila con el total de datos perdidos
+
+tabla_na <- rbind(tabla_na, data.frame(Columna = "Total", Datos_Perdidos = total_na)) # rbind() agrega filas a una tabla, una fila con Total y datos perdidos
+
+
+#tabla_na
+
+# Ordenar la tabla en orden descendente
+tabla_na_ordenada <- tabla_na %>%
+  filter(Columna != "Total") %>%  # Excluir la fila "Total"
+  arrange(desc(Datos_Perdidos)) %>%  # Ordenar de mayor a menor
+  rbind(data.frame(Columna = "Total", Datos_Perdidos = total_na))  # Agregar la fila "Total" al final
+
+tabla_na_ordenada
+```
+
+## Total Datos Duplicados 
+
+identificar los datos perdidos repetidos, 
+```{r}
+sum(duplicated(data))
+```
+```{r}
+data[duplicated(data), ]
+```
+```{r}
+filas_repetidas <- data[c(1, 7, 30), ]
+filas_repetidas
+```
+```{r}
+data_sin <-(data[ , -1])
+head(data_sin)
+```
+```{r}
+sum(duplicated(data_sin))
+```
+
+```{r}
+data[duplicated(data_sin), ]
+```
+```{r}
+filas_repetidas <- data_sin[c(1, 7, 30), ]
+filas_repetidas
+```
+```{r}
+data_sin <- data[!duplicated(data[ , -1]), ]
+head(data_sin)
+```
+Eliminamos los datos duplicados 
+```{r}
+dim(data_sin)
+```
+** CLASE 14/11/2026**
+## COMO ELIMINAR DATOS PERDIDOS 
+
+```{r}
+data_limpia <- na.omit(data_sin)
+data_limpia
+```
+```{r}
+dim(data_limpia)
+```
+## DEJAR VARIABLES SOLO CON LA PRIMERA LETRA EN MAYÚSCULA
+
+```{r}
+# Variables cualitativas
+vars_cualitativas <- c(
+  "Nombre",
+  "Apellido",
+  "Genero",
+  "Ciudad",
+  "Profesion",
+  "Nivel_Educativo",
+  "Estado_Civil",
+  "Email"
+)
+```
+
+```{r}
+# Quitar tildes usando iconv()
+data_limpia[vars_cualitativas] <- lapply(
+  data_limpia[vars_cualitativas],
+  function(x) {
+    x <- as.character(x)
+    x <- tolower(x)
+    x <- iconv(x, from = "UTF-8", to = "ASCII//TRANSLIT")
+    paste0(
+      toupper(substr(x, 1, 1)),
+      substr(x, 2, nchar(x))
+    )
+  }
+)
+```
+
+```{r}
+data_limpia
+```
+
+
+```{r}
+tabla_Genero_2 <- data.frame(sort(table(data_limpia$Genero),
+                                      decreasing = TRUE))
+
+colnames(tabla_Genero) <- c("Genero", "Frecuencia")
+
+tabla_Genero_2
+```
+
+```{r}
+tabla_Nivel_Educativo_2 <- data.frame(sort(table(data_limpia$Nivel_Educativo),
+                                      decreasing = TRUE))
+
+colnames(tabla_Nivel_Educativo) <- c("Nivel_Educativo", "Frecuencia")
+
+tabla_Nivel_Educativo_2
+```
+```{r}
+tabla_Ciudad_2 <- data.frame(sort(table(data_limpia$Ciudad),
+                                      decreasing = TRUE))
+
+colnames(tabla_Ciudad) <- c("Ciudad", "Frecuencia")
+
+tabla_Ciudad_2
+```
+## Cambiar casado y casada a: Casado, y soltero y soltera a: Soltero, en una nueva columna.
+```{r}
+data_limpia$Estado_Civil_Limpio <- ifelse(
+  tolower(data_limpia$Estado_Civil) %in% c("casado", "casada"),
+  "Casado",
+  ifelse(
+    tolower(data_limpia$Estado_Civil) %in% c("soltero", "soltera"),
+    "Soltero",
+    data_limpia$Estado_Civil
+  )
+)
+```
+
+```{r}
+table(data_limpia$Estado_Civil_Limpio)
+```
+## CORRECCIONES DE ERRORES O INCONSISTENCIAS
+ANALISIS DE LA VARIABLE INGRESO DEL DATAFRAME 
+```{r}
+summary(data_limpia$Ingreso)
+```
+```{r}
+# Mostrar filas donde Ingreso es negativo
+data_limpia[data_limpia$Ingreso <= 0, ]
+```
+```{r}
+summary(data_limpia$Edad)
+```
+```{r}
+# Muestra los mayores a 100 años 
+data_limpia[data_limpia$Edad >= 100, ]
+```
+```{r}
+data_limpia[data_limpia$Edad <= 0|data_limpia$Edad >= 100,  ]
+```
+```{r}
+data_limpia[data_limpia$Hijos < 0|data_limpia$Hijos >= 12,  ]
+```
+```{r}
+data_sin_errores <- data_limpia[
+  !(data_limpia$Edad <= 0 | data_limpia$Edad > 100 |
+    data_limpia$Ingreso < 0),
+]
+```
+```{r}
+data_sin_errores
+```
+```{r}
+dim(data_sin_errores)
+```
+## IDENTIFICACIÓN DE VALORES ATIPICOS
+
+El análisis y la detección de datos atípicos (outliers) constituyen una etapa fundamental en la limpieza y exploración de datos, ya que estas observaciones extremas pueden distorsionar significativamente las medidas de tendencia central, inflar la varianza y comprometer la validez de los modelos estadísticos. Para identificar estas anomalías de manera objetiva en nuestro conjunto de datos, empleamos el criterio del Rango Intercuartílico (IQR), el cual mide la dispersión del 50 % central de la distribución mediante la diferencia entre el tercer cuartil (Q₃) y el primer cuartil (Q₁). Bajo este enfoque no paramétrico, se establece como dato atípico cualquier observación que se sitúe por debajo del límite inferior definido por Q₁ - 1.5 × IQR o por encima del límite superior calculado como Q₃ + 1.5 × IQR.
+En el entorno de R, la implementación de este procedimiento se integra de forma directa mediante funciones estadísticas base y herramientas de visualización exploratoria. Para el diagnóstico visual, se recurre a los diagramas de caja (boxplots), donde los valores que superan los bigotes del gráfico se representan como puntos aislados, facilitando una inspección inmediata de la asimetría y la presencia de extremos. De manera complementaria, la extracción programática de estos registros se realiza calculando los cuantiles con la función quantile() o utilizando boxplot.stats(variable)$out, lo que permite aislar, documentar y decidir de forma reproducible si dichos valores corresponden a errores de medición o a fenómenos genuinos dentro de la muestra.
+
+$$\frac{1}{2}$$
+```{r}
+# Calcular cuartiles
+Q1 <- quantile(data_sin_errores$Ingreso, 0.25 ) 
+Q3 <- quantile(data_sin_errores$Ingreso, 0.75) # data_sin_errores$Ingreso, 0.75, na.rm = TRUE si no se han quitado los valores perdidos.
+
+# Calcular rango intercuartílico
+IQR_valor <- IQR(data_sin_errores$Ingreso)
+
+# Definir límites
+limite_inferior <- Q1 - 1.5 * IQR_valor
+limite_superior <- Q3 + 1.5 * IQR_valor
+
+# Mostrar valores atípicos
+valores_atipicos <- data_sin_errores[
+  data_sin_errores$Ingreso < limite_inferior |
+  data_sin_errores$Ingreso > limite_superior,
+]
+
+valores_atipicos
+```
+```{r}
+data_sin_errores <- data_sin_errores[
+  !(data_sin_errores$Ingreso < limite_inferior |
+  data_sin_errores$Ingreso > limite_superior),
+]
+```
+
+```{r}
+summary(data_sin_errores$Ingreso)
+```
+```{r}
+dim(data_sin_errores)
+```
+** Análasis Descriptivo**
+
+** dimensiones de nuestra data**
+
+```{r}
+# Calcular estadísticos
+estadisticos <- data.frame(
+  Estadístico = c("Media", "Mediana", "Desviación Estándar", "Mínimo", "Máximo", "Q1 (25%)", "Q2 (50%)", "Q3 (75%)"),
+  Valor = c(
+    mean(data_sin_errores$Ingreso),
+    median(data_sin_errores$Ingreso),
+    sd(data_sin_errores$Ingreso),
+    min(data_sin_errores$Ingreso),
+    max(data_sin_errores$Ingreso),
+    quantile(data_sin_errores$Ingreso, probs = 0.25),
+    quantile(data_sin_errores$Ingreso, probs = 0.50),
+    quantile(data_sin_errores$Ingreso, probs = 0.75)
+  )
+)
+
+estadisticos
+```
+
+**Medidas descriptivas de manera ordenada**
+
+## ESTANDARIZACION DE VARIABLES
+
+```{r}
+boxplot(
+  data_sin_errores$Ingreso,
+  horizontal = TRUE,
+  col = "skyblue",
+  border = "darkblue",
+  main = "Cajas y Bigotes de Ingresos",
+  xlab = "Ingreso")
+```
+
+```{r}
+hist(
+  data_sin_errores$Ingreso,
+  horizontal = TRUE,
+  col = "skyblue",
+  border = "darkblue",
+  main = "Histograma de Ingresos",
+  xlab = "Ingreso")
+```
+
+
+## ESTANDARIZACIÓN DE VARIABLES
+
+La estandarización de variables, también conocida como normalización Z-score, es una técnica de preprocesamiento esencial que transforma las características numéricas de un conjunto de datos para que compartan una misma escala, evitando que aquellas con magnitudes mayores dominen el ajuste de los modelos estadísticos o de aprendizaje automático. Este procedimiento reescala cada observación \(x_{i}\) restándole la media aritmética de la variable (\(\mu \)) y dividiendo el resultado entre su desviación estándar (\(\sigma \)), según la expresión matemática:
+\(z_{i}=\frac{x_{i}-\mu }{\sigma }\)
+donde \(\mu = \frac{1}{n}\sum_{i=1}^{n} x_i\) y \(\sigma = \sqrt{\frac{1}{n}\sum_{i=1}^{n}(x_i - \mu)^2}\). Como resultado, la variable transformada \(Z\) adquiere una distribución centrada en cero y con dispersión unitaria (\(\mu_Z = 0\) y \(\sigma_Z = 1\)), lo que en R Markdown se implementa directamente mediante la función scale() conservando la forma de la distribución original.
+
+```{r}
+data_sin_errores$Ingreso_est <- scale(data_sin_errores$Ingreso)
+```
+
+```{r}
+summary(data_sin_errores$Ingreso_est)
+```
+```{r}
+boxplot(
+  data_sin_errores$Ingreso_est,
+  horizontal = TRUE,
+  col = "skyblue",
+  border = "darkblue",
+  main = "Cajas y Bigotes de Ingresos",
+  xlab = "Ingreso")
+```
+
+```{r}
+hist(
+  data_sin_errores$Ingreso_est,
+  horizontal = TRUE,
+  col = "skyblue",
+  border = "darkblue",
+  main = "Histograma de Ingresos",
+  xlab = "Ingreso")
+```
+La normalización Min-Max y la transformación de variables son técnicas complementarias de preprocesamiento utilizadas para adecuar la escala y la forma de los datos antes del modelado estadístico. Por un lado, la normalización Min-Max aplica un reescalamiento lineal que comprime los valores originales dentro de un intervalo fijo —habitualmente \([0, 1]\)— mediante la ecuación \(x'_i = \frac{x_i - \min(x)}{\max(x) - \min(x)}\), lo que garantiza que todas las variables contribuyan equitativamente en algoritmos sensibles a la magnitud, sin alterar la estructura de la distribución. Por otro lado, la transformación de datos (como la logarítmica \(y_i = \ln(x_i)\), raíz cuadrada \(y_i = \sqrt{x_i}\) o Box-Cox) modifica de manera no lineal la forma misma de la variable para corregir sesgos pronunciados, estabilizar la varianza (homocedasticidad) y acercar los datos a una distribución normal.
+En el flujo de trabajo de un análisis reproducible en R Markdown, ambas estrategias suelen aplicarse de forma secuencial cuando los datos presentan tanto asimetría como escalas dispares. Primero se ejecuta la transformación no lineal (por ejemplo, log1p(x) en R para evitar errores con valores cero) con el fin de mitigar el impacto de colas largas y valores extremos; posteriormente, sobre la variable ya simetrizada, se aplica el escalamiento Min-Max. Este orden evita que los valores atípicos originales distorsionen los límites \(\min(x)\) y \(\max(x)\), asegurando que los datos transformados queden acotados de manera uniforme y listos para alimentar modelos predictivos de forma estable.
+
+
+```{r}
+# Normalización Min-Max
+data_sin_errores$Ingreso_norm <- (
+ data_sin_errores$Ingreso - min(data_sin_errores$Ingreso)
+) / (
+  max(data_sin_errores$Ingreso) -
+  min(data_sin_errores$Ingreso)
+)
+```
+```{r}
+min(data_sin_errores$Ingreso_norm)
+```
+```{r}
+max(data_sin_errores$Ingreso_norm)
+```
+## EXPORTAR DATOS
+
+```{r}
+library(writexl)
+write_xlsx(data_sin_errores,"C:\\Users\\lumih\\OneDrive\\Documents\\IA\\Ciencia de datos\\RESULTADOS\\DATA_FINAL.xlsx")
+```
+
+

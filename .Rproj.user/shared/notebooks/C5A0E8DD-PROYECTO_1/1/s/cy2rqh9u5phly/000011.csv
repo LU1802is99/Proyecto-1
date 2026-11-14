@@ -1,0 +1,1 @@
+"0","data_limpia[data_limpia$Hijos < 0|data_limpia$Hijos >= 12,  ]"

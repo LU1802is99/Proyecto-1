@@ -1,0 +1,7 @@
+"0","hist("
+"0","  data_sin_errores$Ingreso,"
+"0","  horizontal = TRUE,"
+"0","  col = ""skyblue"","
+"0","  border = ""darkblue"","
+"0","  main = ""Histograma de Ingresos"","
+"0","  xlab = ""Ingreso"")"
